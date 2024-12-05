@@ -1,4 +1,4 @@
 <template>
+	<div>Menu</div>
 	<RouterView />
-	<Toast />
 </template>
