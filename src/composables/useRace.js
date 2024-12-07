@@ -108,6 +108,10 @@ export const useRace = () => {
 		}
 	}
 
+	const getLeaderboard = (eventoId, categoryId) => {
+		return raceStore.getLeaderboard(eventoId, categoryId)
+	}
+
 	return {
 		events,
 		participants,
@@ -121,5 +125,6 @@ export const useRace = () => {
 		createParticipante,
 		updateParticipante,
 		removeParticipante,
+		getLeaderboard,
 	}
 }

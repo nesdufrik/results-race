@@ -21,6 +21,14 @@ const routes = [
 		component: LoginPage,
 	},
 	{
+		path: '/leaderboard',
+		name: 'Leaderboard',
+		meta: {
+			title: 'Resultados',
+		},
+		component: () => import('@/pages/LeaderboardPage.vue'),
+	},
+	{
 		path: '/admin',
 		name: 'Admin',
 		meta: {
@@ -49,6 +57,11 @@ const routes = [
 						component: () => import('@/pages/admin/LlegadasPage.vue'),
 					},
 				],
+			},
+			{
+				path: 'leaderboard',
+				name: 'AdminLeaderboard',
+				component: () => import('@/pages/admin/LeaderboardPage.vue'),
 			},
 		],
 	},
