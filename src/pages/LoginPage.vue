@@ -1,6 +1,6 @@
 <template>
-	<div class="px-6 py-20 md:px-12 lg:px-20">
-		<div class="w-full md:w-96 mx-auto">
+	<div class="min-h-screen flex items-center justify-center">
+		<div class="max-w-md w-full">
 			<Card>
 				<template #title>Autenticación de usuario</template>
 				<template #content>
@@ -43,12 +43,21 @@
 								>
 							</section>
 						</FormField>
+						<Message
+							v-if="errorMessage"
+							severity="error"
+							size="small"
+							variant="filled"
+						>
+							{{ errorMessage }}
+						</Message>
 						<Button
 							type="submit"
 							severity="primary"
 							fluid
 							icon="pi pi-sign-in"
 							label="Ingresar"
+							:loading="loading"
 						/>
 					</Form>
 				</template>
@@ -59,6 +68,9 @@
 <script setup>
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { z } from 'zod'
+import { useAuth } from '@/composables/useAuth'
+
+const { login, loading, errorMessage } = useAuth()
 
 const resolver = zodResolver(
 	z.object({
@@ -70,6 +82,8 @@ const resolver = zodResolver(
 const onFormSubmit = (obj) => {
 	const { valid, values } = obj
 	if (valid) {
+		const { username, password } = values
+		login(username, password)
 	}
 }
 </script>

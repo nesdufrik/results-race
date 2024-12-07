@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '@/pages/HomePage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 
+import pinia from '@/stores'
+import { useAuthStore } from '@/stores/authStore'
+import { storeToRefs } from 'pinia'
+
 const routes = [
 	{
 		path: '/',
@@ -31,6 +35,21 @@ const routes = [
 				name: 'Dashboard',
 				component: () => import('@/pages/admin/DashboardPage.vue'),
 			},
+			{
+				path: 'evento/:id',
+				children: [
+					{
+						path: 'participantes',
+						name: 'Participantes',
+						component: () => import('@/pages/admin/ParticipantesPage.vue'),
+					},
+					{
+						path: 'finish',
+						name: 'Llegadas',
+						component: () => import('@/pages/admin/LlegadasPage.vue'),
+					},
+				],
+			},
 		],
 	},
 	{
@@ -44,13 +63,33 @@ const router = createRouter({
 	routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+	const authStore = useAuthStore(pinia)
+	const { user, isLogged } = storeToRefs(authStore)
+
+	const token = localStorage.getItem('token')
+	const requireAuth = to.matched.some((record) => record.meta.requireAuth)
+
 	document.title = to.meta.title || 'Resultados de competencias'
-	if (to.meta.requireAuth && !localStorage.getItem('token')) {
-		next({ name: 'Login' })
-	} else {
-		next()
+
+	if (requireAuth) {
+		if (!token) {
+			next({ name: 'Login' })
+			return
+		}
+
+		if (!isLogged.value) {
+			try {
+				await authStore.verifyToken()
+			} catch (error) {
+				console.log(error)
+				next({ name: 'Login' })
+				return
+			}
+		}
 	}
+
+	next()
 })
 
 export default router
