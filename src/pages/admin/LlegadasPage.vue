@@ -10,7 +10,12 @@
 					:severity="race?.status === 'pending' ? 'warn' : 'success'"
 					class="text-xs"
 				/>
-				<Button severity="danger" label="Finalizar" @click="" size="small" />
+				<Button
+					severity="danger"
+					label="Finalizar"
+					@click="finishRace"
+					size="small"
+				/>
 			</div>
 		</div>
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
@@ -29,8 +34,8 @@
 						</div>
 						<Button
 							label="Registrar llegada"
-							@click=""
-							:disabled="!form.number"
+							@click="registerFinish"
+							:loading="loading"
 						/>
 						<Message severity="success" v-if="lastRegistrered">
 							<template #container>
@@ -97,17 +102,27 @@
 			</Card>
 		</div>
 	</div>
-	<div>{{ eventoId }}</div>
 </template>
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRace } from '@/composables/useRace'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 
 const route = useRoute()
+const toast = useToast()
+const confirm = useConfirm()
 const eventoId = ref(route.params.id)
 
-const { events, participants } = useRace()
+const {
+	events,
+	participants,
+	getParticipants,
+	updateParticipante,
+	loading,
+	updateEvento,
+} = useRace()
 const race = computed(() =>
 	events.value.find((e) => e.identificador === eventoId.value)
 )
@@ -134,5 +149,81 @@ const formatTime = (participant) => {
 	const minutes = Math.floor(diff / 60000)
 	const seconds = ((diff % 60000) / 1000).toFixed(0)
 	return `${minutes}:${seconds.padStart(2, '0')}`
+}
+
+const registerFinish = async () => {
+	const participant = getParticipants.value.find(
+		(p) => p.number === form.value.number
+	)
+	if (!participant) {
+		toast.add({
+			severity: 'error',
+			summary: 'Error',
+			detail: 'No se encontró un participante con ese número',
+			life: 3000,
+		})
+		return
+	}
+
+	if (!participant.startTime) {
+		toast.add({
+			severity: 'error',
+			summary: 'Error',
+			detail: 'El participante no ha iniciado la carrera',
+			life: 3000,
+		})
+		return
+	}
+
+	if (participant.finishTime) {
+		toast.add({
+			severity: 'error',
+			summary: 'Error',
+			detail: 'El participante ya ha finalizado la carrera',
+			life: 3000,
+		})
+		return
+	}
+
+	participant.finishTime = new Date().toISOString()
+	lastRegistrered.value = participant
+	form.value.number = ''
+	await updateParticipante(participant)
+	participants.value.forEach((p) => {
+		if (p.number === participant.number) {
+			p.finishTime = participant.finishTime
+		}
+	})
+	toast.add({
+		severity: 'success',
+		summary: 'Registro exitoso',
+		detail: 'Se ha registrado la llegada del participante',
+		life: 3000,
+	})
+}
+
+const finishRace = async () => {
+	confirm.require({
+		message: '¿Estás seguro de finalizar la carrera?',
+		header: 'Finalizar carrera',
+		icon: 'pi pi-exclamation-triangle',
+		accept: async () => {
+			await updateEvento({ id: eventoId.value, status: 'finished' })
+			toast.add({
+				severity: 'success',
+				summary: 'Carrera finalizada',
+				detail: 'La carrera ha sido finalizada exitosamente',
+				life: 3000,
+			})
+		},
+		reject: () => {
+			toast.add({
+				severity: 'info',
+				summary: 'Operación cancelada',
+				detail: 'La carrera no ha sido finalizada',
+				life: 3000,
+			})
+		},
+	})
 }
 </script>

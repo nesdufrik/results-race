@@ -20,10 +20,7 @@ export const postEvento = async (evento) => {
 
 export const putEvento = async (evento) => {
 	try {
-		const response = await axios.put(
-			`/de32e52d-7c36-4d63-8e9b-9bc08da2e7bb/eventos/${evento.id}`,
-			evento
-		)
+		const response = await axios.post(`/eventos/put?id=${evento.id}`, evento)
 		return response.data
 	} catch (error) {
 		console.error(error)
@@ -32,9 +29,7 @@ export const putEvento = async (evento) => {
 
 export const deleteEvento = async (eventoId) => {
 	try {
-		const response = await axios.delete(
-			`/de32e52d-7c36-4d63-8e9b-9bc08da2e7bb/eventos/${eventoId}`
-		)
+		const response = await axios.post(`/eventos/delete?id=${eventoId}`)
 		return response.data
 	} catch (error) {
 		console.error(error)

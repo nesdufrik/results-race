@@ -28,6 +28,9 @@ export const useAuthStore = defineStore('auth', {
 			})
 
 			if (response.data.success) {
+				axios.defaults.headers.common[
+					'Authorization'
+				] = `Bearer ${response.data.data.token}`
 				this.login(response.data.data)
 			} else {
 				this.logout()

@@ -20,8 +20,8 @@ export const postParticipante = async (participante) => {
 
 export const putParticipante = async (participante) => {
 	try {
-		const response = await axios.put(
-			`/065e8430-6df5-4505-a07f-4bf6390d7872/participantes/${participante.id}`,
+		const response = await axios.post(
+			`/participantes/put?id=${participante.identificador}`,
 			participante
 		)
 		return response.data
@@ -32,8 +32,8 @@ export const putParticipante = async (participante) => {
 
 export const deleteParticipante = async (participanteId) => {
 	try {
-		const response = await axios.delete(
-			`/065e8430-6df5-4505-a07f-4bf6390d7872/participantes/${participanteId}`
+		const response = await axios.post(
+			`/participantes/delete?=${participanteId}`
 		)
 		return response.data
 	} catch (error) {

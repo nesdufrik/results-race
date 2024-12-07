@@ -27,7 +27,7 @@
 							size="small"
 						/>
 					</div>
-					<DataTable :value="participants">
+					<DataTable :value="getParticipants">
 						<Column field="number" header="Número"></Column>
 						<Column field="name" header="Nombre"></Column>
 						<Column field="team" header="Club"></Column>
@@ -59,7 +59,8 @@ import { useRace } from '@/composables/useRace'
 const route = useRoute()
 const eventoId = ref(route.params.id)
 
-const { events, participants, loadParticipantes, loading } = useRace()
+const { events, participants, getParticipants, loadParticipantes, loading } =
+	useRace()
 
 const race = computed(() =>
 	events.value.find((e) => e.identificador === eventoId.value)

@@ -110,7 +110,8 @@ export const useRace = () => {
 
 	return {
 		events,
-		participants: getParticipants,
+		participants,
+		getParticipants,
 		loading,
 		loadEventos,
 		createEvento,
