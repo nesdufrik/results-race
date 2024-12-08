@@ -191,7 +191,7 @@ app.use(PrimeVue, {
 		preset: theme,
 		options: {
 			prefix: 'p',
-			darkModeSelector: '.dark',
+			darkModeSelector: '.p-dark',
 			cssLayer: {
 				name: 'primevue',
 				order: 'tailwind-base, primevue, tailwind-utilities',

@@ -28,7 +28,7 @@ export const useRaceStore = defineStore('race', {
 			this.participants = participants
 		},
 		getLeaderboard(eventoId, categoryId) {
-			return this.participants
+			return this.getParticipants
 				.filter((p) => p.eventoId === eventoId && p.categoryId === categoryId)
 				.sort((a, b) => {
 					if (!a.finishTime) return 1

@@ -26,6 +26,15 @@
 						<span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
 					</a>
 				</template>
+				<template #end>
+					<Button
+						icon="pi pi-moon"
+						iconPos="right"
+						@click="toggleTheme"
+						rounded
+						text
+					/>
+				</template>
 			</Menubar>
 			<div class="flex flex-col gap-4">
 				<div class="flex flex-row gap-4">
@@ -181,6 +190,14 @@ const items = ref([
 		route: '/leaderboard',
 	},
 ])
+
+const toggleTheme = () => {
+	const theme = document.querySelector('html')
+	theme.classList.toggle('p-dark')
+	const icon = document.querySelector('.pi')
+	icon.classList.toggle('pi-moon')
+	icon.classList.toggle('pi-sun')
+}
 
 const {
 	events,
