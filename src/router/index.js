@@ -11,6 +11,7 @@ const routes = [
 		path: '/',
 		name: 'Home',
 		component: HomePage,
+		redirect: '/leaderboard',
 	},
 	{
 		path: '/login',
