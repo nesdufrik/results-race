@@ -3,19 +3,19 @@ import { defineAsyncComponent, markRaw, ref } from 'vue'
 import { useRace } from '@/composables/useRace'
 import { useDialog } from 'primevue/usedialog'
 
-const EventoCreateForm = defineAsyncComponent(() =>
-	import('@/components/Eventos/CreateForm.vue')
+const EventCreateForm = defineAsyncComponent(() =>
+	import('@/components/Events/CreateForm.vue')
 )
-const EventoCreateFooter = defineAsyncComponent(() =>
-	import('@/components/Eventos/CreateFooter.vue')
+const EventCreateFooter = defineAsyncComponent(() =>
+	import('@/components/Events/CreateFooter.vue')
 )
 
-const { events, loadEventos, loading, updateEvento } = useRace()
+const { events, loading, loadEvents, registerStart } = useRace()
 const dialog = useDialog()
-const selectedEvents = ref([])
+const selectedGroups = ref([])
 
 const onCreateEvent = () => {
-	const dialogRef = dialog.open(EventoCreateForm, {
+	const dialogRef = dialog.open(EventCreateForm, {
 		props: {
 			header: 'Crear evento',
 			style: { width: '50vw' },
@@ -23,20 +23,20 @@ const onCreateEvent = () => {
 			modal: true,
 		},
 		templates: {
-			footer: markRaw(EventoCreateFooter),
+			footer: markRaw(EventCreateFooter),
 		},
 	})
 }
 
 const startCategorySelection = (eventoId) => {
-	const ids = selectedEvents.value
-	updateEvento({
+	const ids = selectedGroups.value
+	registerStart({
 		event_id: eventoId,
 		start_groups: ids,
 	})
 		.then(() => {
-			selectedEvents.value = []
-			loadEventos()
+			selectedGroups.value = []
+			loadEvents()
 		})
 		.catch((error) => {
 			console.error('Error starting category selection:', error)
@@ -48,7 +48,7 @@ const getTime = (time) => {
 	return new Date(time).toLocaleTimeString()
 }
 
-loadEventos()
+loadEvents()
 </script>
 <template>
 	<div>
@@ -89,13 +89,13 @@ loadEventos()
 									icon="pi pi-clock"
 									@click="startCategorySelection(event.id)"
 									class="w-80"
-									:disabled="selectedEvents.length === 0"
+									:disabled="selectedGroups.length === 0"
 									:loading="loading"
 									:severity="
-										selectedEvents.length === 0 ? 'secondary' : 'primary'
+										selectedGroups.length === 0 ? 'secondary' : 'primary'
 									"
 									size="small"
-									:outlined="selectedEvents.length === 0"
+									:outlined="selectedGroups.length === 0"
 								/>
 							</div>
 						</template>
@@ -110,7 +110,7 @@ loadEventos()
 								<Checkbox
 									:input-id="`cb-${data.id}`"
 									:value="data.id"
-									v-model="selectedEvents"
+									v-model="selectedGroups"
 									:disabled="data.start_time !== null"
 								/>
 							</template>
@@ -119,7 +119,7 @@ loadEventos()
 				</template>
 				<template #footer>
 					<RouterLink
-						:to="`participantes/${event.id}`"
+						:to="`participants/${event.id}`"
 						class="font-semibold text-base flex flex-row items-center justify-center gap-2 text-primary mt-3 hover:text-primary-300 hover:bg-primary-900/90 rounded-md p-2 border border-primary-300/50"
 					>
 						<i class="pi pi-users"></i><span>Gestionar participantes</span>

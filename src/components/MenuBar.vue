@@ -15,7 +15,7 @@ const items = ref([
 	{
 		label: 'Eventos',
 		icon: 'pi pi-calendar',
-		route: '/eventos',
+		route: '/events',
 	},
 	{
 		label: 'Leaderboard',
@@ -35,7 +35,7 @@ async function signOut() {
 }
 </script>
 <template>
-	<header class="container mx-auto px-4">
+	<header class="container mx-auto px-4 pb-6">
 		<Menubar :model="items">
 			<template #item="{ item, props, hasSubmenu }">
 				<router-link

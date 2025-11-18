@@ -21,7 +21,7 @@
 						<div></div>
 						<Button
 							label="Registrar Llegadas"
-							@click="$router.push('/llegadas/' + eventoId)"
+							@click="$router.push('/arrivals/' + eventoId)"
 							class="w-80"
 							severity="success"
 							size="small"
@@ -45,9 +45,9 @@ import { useRoute } from 'vue-router'
 import { useRace } from '@/composables/useRace'
 
 const route = useRoute()
-const eventoId = ref(route.params.idEvento)
+const eventoId = ref(route.params.idEvent)
 
-const { participants, loadParticipantes } = useRace()
+const { participants, loadParticipants } = useRace()
 
-loadParticipantes(eventoId.value)
+loadParticipants(eventoId.value)
 </script>

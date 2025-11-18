@@ -3,10 +3,10 @@ import { useSupabase } from '@/composables/useSupabase'
 import LoginPage from '@/pages/LoginPage.vue'
 import BasePage from '@/pages/BasePage.vue'
 
-import EventosPage from '@/pages/EventosPage.vue'
+import EventsPage from '@/pages/EventsPage.vue'
 import DashboardPage from '@/pages/DashboardPage.vue'
-import ParticipantesPage from '@/pages/ParticipantesPage.vue'
-import LlegadasPage from '@/pages/LlegadasPage.vue'
+import ParticipantsPage from '@/pages/ParticipantsPage.vue'
+import ArrivalsPage from '@/pages/ArrivalsPage.vue'
 import LeaderboardPage from '@/pages/LeaderboardPage.vue'
 
 const { supabase } = useSupabase()
@@ -36,19 +36,19 @@ const routes = [
 				component: DashboardPage,
 			},
 			{
-				path: '/eventos',
-				name: 'eventos',
-				component: EventosPage,
+				path: '/events',
+				name: 'events',
+				component: EventsPage,
 			},
 			{
-				path: '/participantes/:idEvento',
-				name: 'participantes-evento',
-				component: ParticipantesPage,
+				path: '/participants/:idEvent',
+				name: 'participants-event',
+				component: ParticipantsPage,
 			},
 			{
-				path: '/llegadas/:idEvento',
-				name: 'llegadas-evento',
-				component: LlegadasPage,
+				path: '/arrivals/:idEvent',
+				name: 'arrivals-participants',
+				component: ArrivalsPage,
 			},
 			{
 				path: '/leaderboard',

@@ -1,15 +1,3 @@
-import {
-	getEventos,
-	postEvento,
-	putEvento,
-	deleteEvento,
-} from '@/services/eventosService'
-import {
-	getParticipantes,
-	postParticipante,
-	putParticipante,
-	deleteParticipante,
-} from '@/services/participantesService'
 import { useRaceStore } from '@/stores/raceStore'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
@@ -18,83 +6,58 @@ import { useSupabase } from './useSupabase'
 export const useRace = () => {
 	const { supabase } = useSupabase()
 	const raceStore = useRaceStore()
-	const { events, participants, getParticipants } = storeToRefs(raceStore)
+	const { events, participants } = storeToRefs(raceStore)
 	const loading = ref(false)
 
-	const loadEventos = async () => {
+	const loadEvents = async () => {
 		try {
 			loading.value = true
-			const data = await getEventos()
+			const { data, error } = await supabase
+				.from('events')
+				.select(`*,start_groups(*)`)
+			if (error) throw error
 			raceStore.setEvents(data)
-			loading.value = false
 		} catch (error) {
 			return Promise.reject(error)
+		} finally {
+			loading.value = false
 		}
 	}
 
-	const createEvento = async (evento) => {
+	const registerStart = async (event) => {
+		const time = new Date().toISOString()
 		try {
 			loading.value = true
-			const response = await postEvento(evento)
-			loading.value = false
-			return response
+			const { data, error } = await supabase
+				.from('start_groups')
+				.update({
+					start_time: time,
+				})
+				.in('id', event.start_groups)
+				.select()
+
+			if (error) throw error
+			return data
 		} catch (error) {
-			return Promise.reject(error)
+			console.error(error)
+		} finally {
+			loading.value = false
 		}
 	}
 
-	const updateEvento = async (event) => {
+	const loadParticipants = async (eventoId) => {
 		try {
 			loading.value = true
-			const response = await putEvento(event)
-			loading.value = false
-			return response
-		} catch (error) {
-			return Promise.reject(error)
-		}
-	}
-
-	const removeEvento = async (id) => {
-		try {
-			loading.value = true
-			const response = await deleteEvento(id)
-			loading.value = false
-			return response
-		} catch (error) {
-			return Promise.reject(error)
-		}
-	}
-
-	const loadParticipantes = async (eventoId) => {
-		try {
-			loading.value = true
-			const data = await getParticipantes(eventoId)
+			const { data, error } = await supabase
+				.from('participants')
+				.select(`*, categories(name)`)
+				.eq('event_id', eventoId)
+			if (error) throw error
 			raceStore.setParticipants(data)
-			loading.value = false
 		} catch (error) {
-			return Promise.reject(error)
-		}
-	}
-
-	const createParticipante = async (participante) => {
-		try {
-			loading.value = true
-			const response = await postParticipante(participante)
+			console.error(error)
+		} finally {
 			loading.value = false
-			return response
-		} catch (error) {
-			return Promise.reject(error)
-		}
-	}
-
-	const updateParticipante = async (participante) => {
-		try {
-			loading.value = true
-			const response = await putParticipante(participante)
-			loading.value = false
-			return response
-		} catch (error) {
-			return Promise.reject(error)
 		}
 	}
 
@@ -115,35 +78,13 @@ export const useRace = () => {
 		}
 	}
 
-	const removeParticipante = async (id) => {
-		try {
-			loading.value = true
-			const response = await deleteParticipante(id)
-			loading.value = false
-			return response
-		} catch (error) {
-			return Promise.reject(error)
-		}
-	}
-
-	const getLeaderboard = (eventoId, categoryId) => {
-		return raceStore.getLeaderboard(eventoId, categoryId)
-	}
-
 	return {
 		events,
 		participants,
-		getParticipants,
 		loading,
-		loadEventos,
-		createEvento,
-		updateEvento,
-		removeEvento,
-		loadParticipantes,
-		createParticipante,
-		updateParticipante,
-		removeParticipante,
-		getLeaderboard,
+		loadEvents,
+		loadParticipants,
+		registerStart,
 		registerFinish,
 	}
 }
