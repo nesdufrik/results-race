@@ -1,42 +1,36 @@
-import { login } from '@/services/authService'
-import { useAuthStore } from '@/stores/authStore'
-import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { useSupabase } from './useSupabase'
+import { useUser } from './useUser'
+import { useRouter } from 'vue-router'
 
-export const useAuth = () => {
-	const authStore = useAuthStore()
-	const { user } = storeToRefs(authStore)
-	const loading = ref(false)
-	const errorMessage = ref('')
+export function useAuth() {
+	const { supabase } = useSupabase()
+	const { setUser } = useUser()
+	const router = useRouter()
 
-	const loginAction = async (username, password) => {
-		try {
-			errorMessage.value = ''
-			loading.value = true
-			const response = await login(username, password)
-			loading.value = false
-			if (response.success) {
-				authStore.login(response.data)
-			} else {
-				errorMessage.value = response.message
-				setTimeout(() => {
-					errorMessage.value = ''
-				}, 3000)
-			}
-		} catch (error) {
-			return Promise.reject(error)
+	const getSession = async () => {
+		const { data, error } = await supabase.auth.getSession()
+		const token = await supabase.auth.getUser(token)
+		if (error) throw error
+		if (data.session && data.session.user) {
+			setUser(data.session.user)
 		}
+		return data.session
 	}
 
-	const logoutAction = () => {
-		authStore.logout()
+	const loginWithPassw = async ({ email, password }) => {
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email,
+			password,
+		})
+		if (error)
+			throw new Error('Error de autenticación correo o contraseña incorrecta')
+
+		setUser(data.user)
+		router.push('/admin/dashboard')
 	}
 
 	return {
-		user,
-		login: loginAction,
-		logout: logoutAction,
-		loading,
-		errorMessage,
+		getSession,
+		loginWithPassw,
 	}
 }

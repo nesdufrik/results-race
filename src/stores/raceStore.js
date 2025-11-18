@@ -7,18 +7,7 @@ export const useRaceStore = defineStore('race', {
 	}),
 	getters: {
 		getEvents: (state) => state.events,
-		getParticipants: (state) => {
-			return state.participants.map((participant) => {
-				return {
-					...participant,
-					startTime: state.events
-						.find((event) => event.identificador === participant.eventoId)
-						.categories.find(
-							(category) => category.id === participant.categoryId
-						).startTime,
-				}
-			})
-		},
+		getParticipants: (state) => state.participants,
 	},
 	actions: {
 		setEvents(events) {

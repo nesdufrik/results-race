@@ -1,9 +1,16 @@
-import axios from 'axios'
+import { useSupabase } from '@/composables/useSupabase'
+
+const { supabase } = useSupabase()
 
 export const getEventos = async () => {
 	try {
-		const response = await axios.get('/eventos')
-		return response.data
+		const { data, error } = await supabase
+			.from('events')
+			.select(`*,start_groups(*)`)
+		if (error) {
+			throw error
+		}
+		return data
 	} catch (error) {
 		console.error(error)
 	}
@@ -11,17 +18,20 @@ export const getEventos = async () => {
 
 export const postEvento = async (evento) => {
 	try {
-		const response = await axios.post('/eventos', evento)
-		return response.data
-	} catch (error) {
-		console.error(error)
-	}
+	} catch (error) {}
 }
 
 export const putEvento = async (evento) => {
+	const time = new Date().toISOString()
 	try {
-		const response = await axios.post(`/eventos/put?id=${evento.id}`, evento)
-		return response.data
+		const { data, error } = await supabase
+			.from('start_groups')
+			.update({ start_time: time })
+			.in('id', evento.start_groups)
+			.select()
+
+		if (error) throw error
+		return data
 	} catch (error) {
 		console.error(error)
 	}
@@ -29,9 +39,5 @@ export const putEvento = async (evento) => {
 
 export const deleteEvento = async (eventoId) => {
 	try {
-		const response = await axios.post(`/eventos/delete?id=${eventoId}`)
-		return response.data
-	} catch (error) {
-		console.error(error)
-	}
+	} catch (error) {}
 }

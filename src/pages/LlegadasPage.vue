@@ -34,7 +34,7 @@
 						</div>
 						<Button
 							label="Registrar llegada"
-							@click="registerFinish"
+							@click="actionRegisterFinish"
 							:loading="loading"
 						/>
 						<Message severity="success" v-if="lastRegistrered">
@@ -44,9 +44,8 @@
 										<i class="pi pi-check"></i> <span>Último registro:</span>
 									</div>
 									<div class="flex flex-col gap-1">
-										<span>Número: {{ lastRegistrered.number }}</span>
-										<span>Nombre: {{ lastRegistrered.name }}</span>
-										<span>Tiempo: {{ formatTime(lastRegistrered) }}</span>
+										<span>Número: {{ lastRegistrered.race_number }}</span>
+										<span>Nombre: {{ lastRegistrered.full_name }}</span>
 									</div>
 								</div>
 							</template>
@@ -77,19 +76,21 @@
 											>
 												<div>
 													<div class="text-lg font-medium mt-2">
-														#{{ item.number }} {{ item.name }}
+														#{{ item.race_number }} {{ item.full_name }}
 													</div>
 												</div>
 												<div
 													class="bg-surface-100 p-1"
 													style="border-radius: 30px"
 												>
-													{{ getCategoryName(item.categoryId) }}
+													{{ item.category_name }}
 												</div>
 											</div>
 											<div class="flex flex-col md:items-end gap-8">
 												<span class="text-xl font-semibold">{{
-													new Date(item.finishTime).toLocaleTimeString()
+													item.total_time_interval
+														? item.total_time_interval
+														: '--:--'
 												}}</span>
 											</div>
 										</div>
@@ -106,94 +107,34 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useRace } from '@/composables/useRace'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
+import { useRace } from '@/composables/useRace'
+import { useSupabase } from '@/composables/useSupabase'
 
+const { supabase } = useSupabase()
 const route = useRoute()
 const toast = useToast()
 const confirm = useConfirm()
-const eventoId = ref(route.params.id)
+const eventoId = ref(route.params.idEvento)
 
-const {
-	events,
-	participants,
-	getParticipants,
-	updateParticipante,
-	loading,
-	updateEvento,
-} = useRace()
-const race = computed(() =>
-	events.value.find((e) => e.identificador === eventoId.value)
-)
+const { events, participants, registerFinish, loading, updateEvento } =
+	useRace()
+const race = computed(() => events.value.find((e) => e.id === eventoId.value))
 const form = ref({ number: '' })
 const lastRegistrered = ref(null)
 
-const recentFinishes = computed(() => {
-	return [...participants.value]
-		.filter((p) => p.finishTime)
-		.sort((a, b) => new Date(b.finishTime) - new Date(a.finishTime))
-		.slice(0, 10)
-})
-const getCategoryName = (categoryId) => {
-	const category = race.value?.categories.find((c) => c.id === categoryId)
-	return category ? category.name : ''
-}
-const formatTime = (participant) => {
-	if (!participant.startTime || !participant.finishTime) return '--:--'
+const recentFinishes = ref([])
 
-	const start = new Date(participant.startTime)
-	const finish = new Date(participant.finishTime)
-	const diff = finish - start
-
-	const minutes = Math.floor(diff / 60000)
-	const seconds = ((diff % 60000) / 1000).toFixed(0)
-	return `${minutes}:${seconds.padStart(2, '0')}`
-}
-
-const registerFinish = async () => {
-	const participant = getParticipants.value.find(
-		(p) => p.number === form.value.number
+const actionRegisterFinish = async () => {
+	const participant = participants.value.find(
+		(p) => p.race_number === form.value.number
 	)
-	if (!participant) {
-		toast.add({
-			severity: 'error',
-			summary: 'Error',
-			detail: 'No se encontró un participante con ese número',
-			life: 3000,
-		})
-		return
-	}
 
-	if (!participant.startTime) {
-		toast.add({
-			severity: 'error',
-			summary: 'Error',
-			detail: 'El participante no ha iniciado la carrera',
-			life: 3000,
-		})
-		return
-	}
-
-	if (participant.finishTime) {
-		toast.add({
-			severity: 'error',
-			summary: 'Error',
-			detail: 'El participante ya ha finalizado la carrera',
-			life: 3000,
-		})
-		return
-	}
-
-	participant.finishTime = new Date().toISOString()
 	lastRegistrered.value = participant
 	form.value.number = ''
-	await updateParticipante(participant)
-	participants.value.forEach((p) => {
-		if (p.number === participant.number) {
-			p.finishTime = participant.finishTime
-		}
-	})
+	await registerFinish(participant.race_number, eventoId.value)
+
 	toast.add({
 		severity: 'success',
 		summary: 'Registro exitoso',
@@ -226,4 +167,37 @@ const finishRace = async () => {
 		},
 	})
 }
+
+async function fetchLiveRanking() {
+	const { data, error } = await supabase
+		.from('live_ranking') // Consultamos la VISTA
+		.select('*')
+		.eq('event_id', eventoId.value) // Filtramos por el evento actual
+		.order('position_in_category', { ascending: true, nullsFirst: false }) // Ordenamos
+
+	if (error) {
+		console.error('Error cargando el ranking:', error)
+	} else {
+		recentFinishes.value = data.slice(-5).reverse()
+	}
+}
+
+const channel = supabase
+	.channel('public-race-results')
+	.on(
+		'postgres_changes',
+		{
+			event: '*', // Escucha INSERT, UPDATE, DELETE
+			schema: 'public',
+			table: 'race_results', // Escucha cambios en la TABLA de resultados
+		},
+		(payload) => {
+			// Cuando hay un cambio en los resultados,
+			// volvemos a pedir el ranking ya calculado desde la VISTA.
+			fetchLiveRanking()
+		}
+	)
+	.subscribe()
+
+fetchLiveRanking()
 </script>

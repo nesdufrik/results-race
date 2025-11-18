@@ -13,8 +13,10 @@ import {
 import { useRaceStore } from '@/stores/raceStore'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
+import { useSupabase } from './useSupabase'
 
 export const useRace = () => {
+	const { supabase } = useSupabase()
 	const raceStore = useRaceStore()
 	const { events, participants, getParticipants } = storeToRefs(raceStore)
 	const loading = ref(false)
@@ -22,8 +24,8 @@ export const useRace = () => {
 	const loadEventos = async () => {
 		try {
 			loading.value = true
-			const response = await getEventos()
-			raceStore.setEvents(response.data)
+			const data = await getEventos()
+			raceStore.setEvents(data)
 			loading.value = false
 		} catch (error) {
 			return Promise.reject(error)
@@ -41,12 +43,11 @@ export const useRace = () => {
 		}
 	}
 
-	const updateEvento = async (evento) => {
+	const updateEvento = async (event) => {
 		try {
 			loading.value = true
-			const response = await putEvento(evento)
+			const response = await putEvento(event)
 			loading.value = false
-			console.log(response)
 			return response
 		} catch (error) {
 			return Promise.reject(error)
@@ -67,8 +68,8 @@ export const useRace = () => {
 	const loadParticipantes = async (eventoId) => {
 		try {
 			loading.value = true
-			const response = await getParticipantes(eventoId)
-			raceStore.setParticipants(response.data)
+			const data = await getParticipantes(eventoId)
+			raceStore.setParticipants(data)
 			loading.value = false
 		} catch (error) {
 			return Promise.reject(error)
@@ -94,6 +95,23 @@ export const useRace = () => {
 			return response
 		} catch (error) {
 			return Promise.reject(error)
+		}
+	}
+
+	const registerFinish = async (raceNumber, eventId) => {
+		if (!raceNumber) {
+			alert('Número de dorsal requerido')
+			return
+		}
+
+		const { error } = await supabase.rpc('register_finish_time', {
+			p_race_number: raceNumber,
+			p_event_id: eventId,
+		})
+
+		if (error) {
+			console.error('Error registering finish time:', error)
+			alert(`Error: ${error.message}`)
 		}
 	}
 
@@ -126,5 +144,6 @@ export const useRace = () => {
 		updateParticipante,
 		removeParticipante,
 		getLeaderboard,
+		registerFinish,
 	}
 }

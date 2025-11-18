@@ -4,19 +4,19 @@
 			<Card>
 				<template #title>Autenticación de usuario</template>
 				<template #content>
-					<Form
-						:resolver="resolver"
-						@submit="onFormSubmit"
-						class="flex flex-col gap-4"
-					>
+					<Form :resolver @submit="onFormSubmit" class="flex flex-col gap-4">
 						<FormField
 							v-slot="$field"
 							as="section"
-							name="username"
+							name="email"
 							initialValue=""
 							class="flex flex-col gap-2"
 						>
-							<InputText type="text" placeholder="Nombre de usuario" />
+							<InputText
+								type="email"
+								placeholder="Correo electrónico"
+								v-model="email"
+							/>
 							<Message
 								v-if="$field?.invalid"
 								severity="error"
@@ -29,10 +29,11 @@
 							<section class="flex flex-col gap-2">
 								<Password
 									type="text"
-									placeholder="Contraseña de usuario"
+									placeholder="Contraseña"
 									:feedback="false"
 									toggleMask
 									fluid
+									v-model="password"
 								/>
 								<Message
 									v-if="$field?.invalid"
@@ -69,21 +70,41 @@
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/composables/useAuth'
+import { ref } from 'vue'
 
-const { login, loading, errorMessage } = useAuth()
+const loading = ref(false)
+const email = ref('')
+const password = ref('')
+const errorMessage = ref('')
+const { loginWithPassw } = useAuth()
 
 const resolver = zodResolver(
 	z.object({
-		username: z.string().min(1, { message: 'Nombre de usuario es requerido.' }),
+		email: z
+			.string()
+			.min(1, { message: 'Correo electrónico es requerido.' })
+			.email({ message: 'El correo electrónico no es válido.' }),
 		password: z.string().min(1, { message: 'La contraseña es requerida.' }),
 	})
 )
 
-const onFormSubmit = (obj) => {
-	const { valid, values } = obj
+const onFormSubmit = ({ valid }) => {
 	if (valid) {
-		const { username, password } = values
-		login(username, password)
+		login()
+	}
+}
+
+async function login() {
+	try {
+		loading.value = true
+		await loginWithPassw({
+			email: email.value,
+			password: password.value,
+		})
+	} catch (error) {
+		errorMessage.value = error.message || 'Error al iniciar sesión.'
+	} finally {
+		loading.value = false
 	}
 }
 </script>

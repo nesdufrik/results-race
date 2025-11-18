@@ -1,68 +1,59 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '@/pages/HomePage.vue'
+import { useSupabase } from '@/composables/useSupabase'
 import LoginPage from '@/pages/LoginPage.vue'
+import BasePage from '@/pages/BasePage.vue'
 
-import pinia from '@/stores'
-import { useAuthStore } from '@/stores/authStore'
-import { storeToRefs } from 'pinia'
+import EventosPage from '@/pages/EventosPage.vue'
+import DashboardPage from '@/pages/DashboardPage.vue'
+import ParticipantesPage from '@/pages/ParticipantesPage.vue'
+import LlegadasPage from '@/pages/LlegadasPage.vue'
+import LeaderboardPage from '@/pages/LeaderboardPage.vue'
+
+const { supabase } = useSupabase()
 
 const routes = [
 	{
-		path: '/',
-		name: 'Home',
-		component: HomePage,
-		redirect: '/leaderboard',
-	},
-	{
 		path: '/login',
-		name: 'Login',
+		name: 'login',
 		meta: {
 			title: 'Iniciar sesión',
 		},
 		component: LoginPage,
 	},
 	{
-		path: '/leaderboard',
-		name: 'Leaderboard',
-		meta: {
-			title: 'Resultados',
-		},
-		component: () => import('@/pages/LeaderboardPage.vue'),
-	},
-	{
-		path: '/admin',
-		name: 'Admin',
+		path: '/',
+		name: 'base',
 		meta: {
 			requireAuth: true,
-			title: 'Administrador',
+			title: 'Sistema de administración',
 		},
-		component: () => import('@/pages/admin/AdminPage.vue'),
-		redirect: '/admin/dashboard',
+		component: BasePage,
+		redirect: '/dashboard',
 		children: [
 			{
-				path: 'dashboard',
-				name: 'Dashboard',
-				component: () => import('@/pages/admin/DashboardPage.vue'),
+				path: '/dashboard',
+				name: 'dashboard',
+				component: DashboardPage,
 			},
 			{
-				path: 'evento/:id',
-				children: [
-					{
-						path: 'participantes',
-						name: 'Participantes',
-						component: () => import('@/pages/admin/ParticipantesPage.vue'),
-					},
-					{
-						path: 'finish',
-						name: 'Llegadas',
-						component: () => import('@/pages/admin/LlegadasPage.vue'),
-					},
-				],
+				path: '/eventos',
+				name: 'eventos',
+				component: EventosPage,
 			},
 			{
-				path: 'leaderboard',
-				name: 'AdminLeaderboard',
-				component: () => import('@/pages/admin/LeaderboardPage.vue'),
+				path: '/participantes/:idEvento',
+				name: 'participantes-evento',
+				component: ParticipantesPage,
+			},
+			{
+				path: '/llegadas/:idEvento',
+				name: 'llegadas-evento',
+				component: LlegadasPage,
+			},
+			{
+				path: '/leaderboard',
+				name: 'leaderboard',
+				component: LeaderboardPage,
 			},
 		],
 	},
@@ -78,32 +69,20 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-	const authStore = useAuthStore(pinia)
-	const { user, isLogged } = storeToRefs(authStore)
-
-	const token = localStorage.getItem('token')
+	const { data } = await supabase.auth.getSession()
 	const requireAuth = to.matched.some((record) => record.meta.requireAuth)
 
-	document.title = to.meta.title || 'Resultados de competencias'
-
-	if (requireAuth) {
-		if (!token) {
-			next({ name: 'Login' })
-			return
-		}
-
-		if (!isLogged.value) {
-			try {
-				await authStore.verifyToken()
-			} catch (error) {
-				console.log(error)
-				next({ name: 'Login' })
-				return
-			}
-		}
+	if (to.meta.title) {
+		document.title = to.meta.title
 	}
 
-	next()
+	if (requireAuth) {
+		if (!data.session) {
+			return next({ name: 'Login' })
+		}
+		return next()
+	}
+	return next()
 })
 
 export default router
