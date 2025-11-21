@@ -1,21 +1,44 @@
 <template>
-	<div class="min-h-screen flex items-center justify-center">
-		<div class="max-w-md w-full">
-			<Card>
-				<template #title>Autenticación de usuario</template>
-				<template #content>
-					<Form :resolver @submit="onFormSubmit" class="flex flex-col gap-4">
-						<FormField
-							v-slot="$field"
-							as="section"
-							name="email"
-							initialValue=""
-							class="flex flex-col gap-2"
+	<div
+		class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+	>
+		<Card>
+			<template #title>
+				<h2 class="mb-6 text-center text-2xl font-bold">
+					Iniciar Sesión
+				</h2></template
+			>
+			<template #content>
+				<Form :resolver @submit="onFormSubmit" class="flex flex-col gap-4">
+					<FormField
+						v-slot="$field"
+						as="section"
+						name="email"
+						initialValue=""
+						class="flex flex-col gap-2"
+					>
+						<InputText
+							type="email"
+							placeholder="Correo electrónico"
+							v-model="email"
+						/>
+						<Message
+							v-if="$field?.invalid"
+							severity="error"
+							size="small"
+							variant="simple"
+							>{{ $field.error?.message }}</Message
 						>
-							<InputText
-								type="email"
-								placeholder="Correo electrónico"
-								v-model="email"
+					</FormField>
+					<FormField v-slot="$field" asChild name="password" initialValue="">
+						<section class="flex flex-col gap-2">
+							<Password
+								type="text"
+								placeholder="Contraseña"
+								:feedback="false"
+								toggleMask
+								fluid
+								v-model="password"
 							/>
 							<Message
 								v-if="$field?.invalid"
@@ -24,46 +47,27 @@
 								variant="simple"
 								>{{ $field.error?.message }}</Message
 							>
-						</FormField>
-						<FormField v-slot="$field" asChild name="password" initialValue="">
-							<section class="flex flex-col gap-2">
-								<Password
-									type="text"
-									placeholder="Contraseña"
-									:feedback="false"
-									toggleMask
-									fluid
-									v-model="password"
-								/>
-								<Message
-									v-if="$field?.invalid"
-									severity="error"
-									size="small"
-									variant="simple"
-									>{{ $field.error?.message }}</Message
-								>
-							</section>
-						</FormField>
-						<Message
-							v-if="errorMessage"
-							severity="error"
-							size="small"
-							variant="filled"
-						>
-							{{ errorMessage }}
-						</Message>
-						<Button
-							type="submit"
-							severity="primary"
-							fluid
-							icon="pi pi-sign-in"
-							label="Ingresar"
-							:loading="loading"
-						/>
-					</Form>
-				</template>
-			</Card>
-		</div>
+						</section>
+					</FormField>
+					<Message
+						v-if="errorMessage"
+						severity="error"
+						size="small"
+						variant="filled"
+					>
+						{{ errorMessage }}
+					</Message>
+					<Button
+						type="submit"
+						severity="secondary"
+						fluid
+						icon="pi pi-sign-in"
+						label="Ingresar"
+						:loading="loading"
+					/>
+				</Form>
+			</template>
+		</Card>
 	</div>
 </template>
 <script setup>

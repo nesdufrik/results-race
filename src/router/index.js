@@ -78,7 +78,7 @@ router.beforeEach(async (to, from, next) => {
 
 	if (requireAuth) {
 		if (!data.session) {
-			return next({ name: 'Login' })
+			return next({ name: 'login' })
 		}
 		return next()
 	}
