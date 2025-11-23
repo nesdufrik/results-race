@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineAsyncComponent, markRaw, ref } from 'vue'
+import { defineAsyncComponent, markRaw, ref } from 'vue'
 import { useRace } from '@/composables/useRace'
 import { useDialog } from 'primevue/usedialog'
 import { useConfirm } from 'primevue/useconfirm'

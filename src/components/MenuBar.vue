@@ -19,7 +19,7 @@ const items = ref([
 	},
 	{
 		label: 'Leaderboard',
-		icon: 'pi pi-chart-bar',
+		icon: 'pi pi-trophy',
 		route: '/leaderboard',
 	},
 ])

@@ -12,11 +12,12 @@ const EventModalFooter = defineAsyncComponent(() =>
 	import('@/components/Events/EventModalFooter.vue')
 )
 
-const { events, loading, loadEvents, deleteEvent } = useRace()
+const { events, event, loading, loadEvents, deleteEvent } = useRace()
 const dialog = useDialog()
 const confirm = useConfirm()
 
 const onCreateEvent = () => {
+	event.value = {}
 	const dialogRef = dialog.open(EventModalForm, {
 		props: {
 			header: 'Nuevo Evento',
@@ -48,13 +49,12 @@ loadEvents()
 <template>
 	<div>
 		<div class="flex items-center justify-between">
-			<span class="text-2xl font-bold text-primary">Eventos Disponibles </span>
+			<h1 class="text-2xl font-bold text-primary">Eventos Disponibles</h1>
 			<Button
 				severity="secondary"
 				icon="pi pi-plus"
 				label="Crear evento"
 				@click="onCreateEvent"
-				size="small"
 			/>
 		</div>
 		<div class="flex flex-col gap-4 mt-9">
