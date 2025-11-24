@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast'
 import { inject } from 'vue'
 import { useRace } from '@/composables/useRace'
 
-const { startGroups, registerNewStartGroup } = useRace()
+const { startGroups, registerNewStartGroup, loadEvents } = useRace()
 
 const toast = useToast()
 const dialogRef = inject('dialogRef')
@@ -41,6 +41,7 @@ const onFormSubmit = ({ valid }) => {
 			.finally(() => {
 				startGroups.value = {}
 				dialogRef.value.close()
+				loadEvents()
 			})
 	} else {
 		toast.add({

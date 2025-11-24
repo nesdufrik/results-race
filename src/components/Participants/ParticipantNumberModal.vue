@@ -29,7 +29,7 @@ const onSubmit = () => {
 			toast.add({
 				severity: 'error',
 				summary: 'Error',
-				detail: 'Error al asignar número',
+				detail: error.message,
 				life: 3000,
 			})
 		})

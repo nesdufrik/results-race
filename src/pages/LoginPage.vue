@@ -3,8 +3,16 @@
 		class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
 	>
 		<Card>
+			<template #header>
+				<div class="flex flex-col items-center justify-center p-4">
+					<img src="@/assets/img/logo.png" class="h-20" alt="Logo" />
+					<span class="uppercase text-sm font-bold text-orange-400"
+						>Manchachis &copy; {{ new Date().getFullYear() }}</span
+					>
+				</div>
+			</template>
 			<template #title>
-				<h2 class="mb-6 text-center text-2xl font-bold">
+				<h2 class="mb-2 text-center text-2xl font-bold">
 					Iniciar Sesión
 				</h2></template
 			>

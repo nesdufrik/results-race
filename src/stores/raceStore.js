@@ -26,11 +26,6 @@ export const useRaceStore = defineStore('race', {
 		removeEvent(eventId) {
 			this.events = this.events.filter((event) => event.id !== eventId)
 		},
-		addStartGroup(startGroup) {
-			this.events
-				.find((event) => event.id === startGroup.event_id)
-				.start_groups.push(startGroup)
-		},
 		removeStartGroup(eventId, startGroupId) {
 			this.events = this.events.map((event) => {
 				if (event.id === eventId) {

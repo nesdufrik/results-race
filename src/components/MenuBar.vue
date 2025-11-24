@@ -17,11 +17,6 @@ const items = ref([
 		icon: 'pi pi-calendar',
 		route: '/events',
 	},
-	{
-		label: 'Leaderboard',
-		icon: 'pi pi-trophy',
-		route: '/leaderboard',
-	},
 ])
 
 async function signOut() {

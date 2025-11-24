@@ -51,7 +51,7 @@ const routes = [
 				component: ArrivalsPage,
 			},
 			{
-				path: '/leaderboard',
+				path: '/leaderboard/:idEvent',
 				name: 'leaderboard',
 				component: LeaderboardPage,
 			},

@@ -1,8 +1,7 @@
 import { useRaceStore } from '@/stores/raceStore'
 import { storeToRefs } from 'pinia'
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { useSupabase } from './useSupabase'
-import { email } from 'zod'
 
 export const useRace = () => {
 	const { supabase } = useSupabase()
@@ -72,16 +71,14 @@ export const useRace = () => {
 		const time = new Date().toISOString()
 		try {
 			loading.registerStart = true
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('start_groups')
 				.update({
 					start_time: time,
 				})
 				.in('id', event.start_groups)
-				.select()
 
 			if (error) throw error
-			return data
 		} catch (error) {
 			console.error(error)
 		} finally {
@@ -90,19 +87,36 @@ export const useRace = () => {
 	}
 
 	const registerFinish = async (raceNumber, eventId) => {
-		if (!raceNumber) {
-			alert('Número de dorsal requerido')
-			return
-		}
+		try {
+			loading.registerFinish = true
+			if (!raceNumber) {
+				alert('Número de dorsal requerido')
+				return
+			}
 
-		const { error } = await supabase.rpc('register_finish_time', {
-			p_race_number: raceNumber,
-			p_event_id: eventId,
-		})
+			const { data: dataParticipant, error: errorParticipant } = await supabase
+				.from('participants')
+				.select(`*, race_results(*)`)
+				.eq('race_number', raceNumber)
+				.eq('event_id', eventId)
 
-		if (error) {
-			console.error('Error registering finish time:', error)
-			alert(`Error: ${error.message}`)
+			if (errorParticipant) throw errorParticipant
+			if (dataParticipant[0].race_results !== null) {
+				if (dataParticipant[0].race_results.status === 'finished')
+					throw new Error('Participante ya termino la carrera')
+			}
+
+			const { data: dataRaceResult, error: errorRaceResult } =
+				await supabase.rpc('register_finish_time', {
+					p_race_number: raceNumber,
+					p_event_id: eventId,
+				})
+
+			if (errorRaceResult) throw errorRaceResult
+		} catch (error) {
+			return Promise.reject(error)
+		} finally {
+			loading.registerFinish = false
 		}
 	}
 
@@ -160,8 +174,6 @@ export const useRace = () => {
 				})
 				.select()
 			if (error) throw error
-
-			raceStore.addStartGroup(data[0])
 
 			return data
 		} catch (error) {
@@ -366,7 +378,11 @@ export const useRace = () => {
 					race_number: raceNumber,
 				})
 				.eq('id', participantId)
-			if (error) throw error
+			if (error) {
+				if (error.code === '23505')
+					throw new Error('El número de corredor ya está asignado')
+				throw error
+			}
 			return data
 		} catch (error) {
 			console.error(error)
