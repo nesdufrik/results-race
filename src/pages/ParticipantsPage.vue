@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useRace } from '@/composables/useRace'
 import { useDialog } from 'primevue/usedialog'
 import { useConfirm } from 'primevue/useconfirm'
+import { FilterMatchMode } from '@primevue/core/api'
 
 const ParticipantModalForm = defineAsyncComponent(() =>
 	import('@/components/Participants/ParticipantModalForm.vue')
@@ -13,6 +14,9 @@ const ParticipantModalFooter = defineAsyncComponent(() =>
 )
 const ParticipantNumberModal = defineAsyncComponent(() =>
 	import('@/components/Participants/ParticipantNumberModal.vue')
+)
+const ParticipantVerifyPaymentModal = defineAsyncComponent(() =>
+	import('@/components/Participants/ParticipantVerifyPaymentModal.vue')
 )
 
 const route = useRoute()
@@ -105,6 +109,10 @@ const onDeleteParticipant = (participantId) => {
 	})
 }
 
+const filters = ref({
+	global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+})
+
 const onAssignParticipantNumber = (participantId) => {
 	const dialogRef = dialog.open(ParticipantNumberModal, {
 		props: {
@@ -117,6 +125,24 @@ const onAssignParticipantNumber = (participantId) => {
 			participantId,
 			participantName: participants.value.find((p) => p.id === participantId)
 				.full_name,
+		},
+	})
+}
+
+const onVerifyPayment = (participantId) => {
+	const dialogRef = dialog.open(ParticipantVerifyPaymentModal, {
+		props: {
+			header: 'Verificar Pago',
+			style: { width: '50vw' },
+			breakpoints: { '960px': '75vw', '640px': '90vw' },
+			modal: true,
+		},
+		data: {
+			participantId,
+			participantName: participants.value.find((p) => p.id === participantId)
+				.full_name,
+			participantReceipt: participants.value.find((p) => p.id === participantId)
+				.receipt_url,
 		},
 	})
 }
@@ -160,35 +186,55 @@ const getStatusTag = (status) => {
 		</div>
 		<div class="flex flex-col gap-4 mt-9">
 			<Card class="border border-primary">
-				<template #content>
-					<div class="mt-4 flex flex-col gap-5">
-						<div
-							class="flex flex-col px-4 md:items-center md:flex-row md:justify-between gap-4 md:gap-0"
-						>
-							<div class="flex flex-row gap-3 md:flex-col md:gap-0">
-								<span class="text-lg font-semibold text-primary">
-									{{ event.name }}
-								</span>
-								<Tag
-									:severity="getStatusTag(event.status).severity"
-									:icon="getStatusTag(event.status).icon"
-									:value="getStatusTag(event.status).label"
-									rounded
-								></Tag>
-							</div>
-							<RouterLink
-								:to="`/arrivals/${eventId}`"
-								class="font-semibold text-base p-4 md:p-2 md:w-80 flex flex-row items-center justify-center gap-2 text-primary mt-3 hover:text-primary-300 hover:bg-primary-900/90 rounded-md border border-primary-300/50"
-							>
-								<i class="pi pi-clock"></i><span>Registrar Llegadas</span>
-							</RouterLink>
+				<template #title>
+					<div
+						class="flex flex-col px-4 md:items-center md:flex-row md:justify-between gap-4 md:gap-0"
+					>
+						<div class="flex flex-row gap-3 md:flex-col md:gap-0">
+							<span class="text-lg font-semibold text-primary">
+								{{ event.name }}
+							</span>
+							<Tag
+								:severity="getStatusTag(event.status).severity"
+								:icon="getStatusTag(event.status).icon"
+								:value="getStatusTag(event.status).label"
+								rounded
+							></Tag>
 						</div>
-						<DataTable :value="participants" class="text-sm">
+						<RouterLink
+							:to="`/arrivals/${eventId}`"
+							class="font-semibold text-base p-4 md:p-2 md:w-80 flex flex-row items-center justify-center gap-2 text-primary mt-3 hover:text-primary-300 hover:bg-primary-900/90 rounded-md border border-primary-300/50"
+						>
+							<i class="pi pi-clock"></i><span>Registrar Llegadas</span>
+						</RouterLink>
+					</div>
+				</template>
+				<template #content>
+					<div class="mt-6 flex flex-col gap-5">
+						<DataTable
+							:value="participants"
+							class="text-sm"
+							v-model:filters="filters"
+							:globalFilterFields="['full_name']"
+						>
 							<template #empty>
 								<div class="text-sm text-center italic p-4">
 									<span>
 										-- Aun no agrego ningun participante al evento --
 									</span>
+								</div>
+							</template>
+							<template #header>
+								<div>
+									<IconField>
+										<InputIcon>
+											<i class="pi pi-search" />
+										</InputIcon>
+										<InputText
+											v-model="filters['global'].value"
+											placeholder="Buscar por nombre..."
+										/>
+									</IconField>
 								</div>
 							</template>
 							<Column field="race_number" header="#"></Column>
@@ -215,11 +261,20 @@ const getStatusTag = (status) => {
 								<template #body="{ data }">
 									<div class="flex flex-col gap-2">
 										<Button
+											v-if="!data.paid"
+											label="Verificar Pago"
+											icon="pi pi-money-bill"
+											size="small"
+											severity="primary"
+											@click="onVerifyPayment(data.id)"
+										/>
+										<Button
+											v-else
 											v-if="!data.race_number"
 											label="Asignar Número"
 											icon="pi pi-calendar"
 											size="small"
-											severity="primary"
+											severity="info"
 											@click="onAssignParticipantNumber(data.id)"
 										/>
 										<ButtonGroup>

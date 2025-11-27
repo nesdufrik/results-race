@@ -105,7 +105,6 @@ onMounted(() => {
 						dataKey="id"
 						filterDisplay="menu"
 						class="text-sm"
-						size="small"
 						:globalFilterFields="[
 							'full_name',
 							'start_group_name',

@@ -34,6 +34,7 @@ export const useRace = () => {
 		loadCategories: false,
 		deleteParticipant: false,
 		assignParticipantNumber: false,
+		verifyPayment: false,
 	})
 
 	const loadEvents = async () => {
@@ -392,6 +393,25 @@ export const useRace = () => {
 		}
 	}
 
+	const verifyPayment = async (participantId) => {
+		try {
+			loading.verifyPayment = true
+			const { data, error } = await supabase
+				.from('participants')
+				.update({
+					paid: true,
+				})
+				.eq('id', participantId)
+			if (error) throw error
+			return data
+		} catch (error) {
+			console.error(error)
+			return Promise.reject(error)
+		} finally {
+			loading.verifyPayment = false
+		}
+	}
+
 	return {
 		events,
 		event,
@@ -418,5 +438,6 @@ export const useRace = () => {
 		editParticipant,
 		deleteParticipant,
 		assignParticipantNumber,
+		verifyPayment,
 	}
 }
