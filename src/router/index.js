@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useSupabase } from '@/composables/useSupabase'
 import LoginPage from '@/pages/LoginPage.vue'
+import CompleteProfilePage from '@/pages/CompleteProfilePage.vue'
 import BasePage from '@/pages/BasePage.vue'
 
 import EventsPage from '@/pages/EventsPage.vue'
@@ -19,6 +20,15 @@ const routes = [
 			title: 'Iniciar sesión',
 		},
 		component: LoginPage,
+	},
+	{
+		path: '/complete-profile',
+		name: 'complete-profile',
+		meta: {
+			requireAuth: true,
+			title: 'Completar Perfil',
+		},
+		component: CompleteProfilePage,
 	},
 	{
 		path: '/',
@@ -80,7 +90,21 @@ router.beforeEach(async (to, from, next) => {
 		if (!data.session) {
 			return next({ name: 'login' })
 		}
+
+		const userMetadata = data.session.user.user_metadata
+		const hasFullName = userMetadata && userMetadata.full_name
+
+		if (!hasFullName && to.name !== 'complete-profile') {
+			return next({ name: 'complete-profile' })
+		}
+
+		if (hasFullName && to.name === 'complete-profile') {
+			return next({ name: 'dashboard' })
+		}
+
 		return next()
+	} else if (data.session && to.name === 'login') {
+		return next({ name: 'dashboard' })
 	}
 	return next()
 })

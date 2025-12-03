@@ -1,12 +1,15 @@
 <template>
 	<AuthCard
-		label="Iniciar Sesión"
-		title="Bienvenido de Nuevo"
+		title="Completar Registro"
+		label="Guardar y Continuar"
 		:loading="loading"
-		formId="login_form"
+		formId="complete_profile_form"
 	>
+		<p class="text-center mb-4 text-gray-600">
+			Por favor, completa tu información para continuar.
+		</p>
 		<Form
-			id="login_form"
+			id="complete_profile_form"
 			:resolver
 			@submit="onFormSubmit"
 			class="flex flex-col gap-4"
@@ -14,20 +17,19 @@
 			<FormField
 				v-slot="$field"
 				as="section"
-				name="email"
+				name="fullName"
 				initialValue=""
 				class="flex flex-col gap-2 w-full"
 			>
 				<label
-					for="email"
+					for="fullName"
 					class="text-surface-900 dark:text-surface-0 font-medium leading-normal"
-					>Correo electrónico</label
+					>Nombre Completo</label
 				>
 				<InputText
-					id="email"
-					type="email"
-					placeholder="Correo electrónico"
-					v-model="email"
+					type="text"
+					placeholder="Nombre Completo"
+					v-model="fullName"
 				/>
 				<Message
 					v-if="$field?.invalid"
@@ -47,11 +49,11 @@
 				<label
 					for="password"
 					class="text-surface-900 dark:text-surface-0 font-medium leading-normal"
-					>Contraseña</label
+					>Nueva Contraseña</label
 				>
 				<Password
 					type="text"
-					placeholder="Contraseña"
+					placeholder="Nueva Contraseña"
 					:feedback="false"
 					:toggleMask="true"
 					input-class="w-full!"
@@ -65,18 +67,14 @@
 					>{{ $field.error?.message }}</Message
 				>
 			</FormField>
-			<div
-				class="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3 sm:gap-0"
+			<Message
+				v-if="errorMessage"
+				severity="error"
+				size="small"
+				variant="filled"
 			>
-				<Message
-					v-if="errorMessage"
-					severity="error"
-					size="small"
-					variant="filled"
-				>
-					{{ errorMessage }}
-				</Message>
-			</div>
+				{{ errorMessage }}
+			</Message>
 		</Form>
 	</AuthCard>
 </template>
@@ -88,36 +86,35 @@ import { ref } from 'vue'
 import AuthCard from '@/components/Auth/AuthCard.vue'
 
 const loading = ref(false)
-const email = ref('')
+const fullName = ref('')
 const password = ref('')
 const errorMessage = ref('')
-const { loginWithPassw } = useAuth()
+const { updateProfile } = useAuth()
 
 const resolver = zodResolver(
 	z.object({
-		email: z
+		fullName: z.string().min(1, { message: 'Nombre completo es requerido.' }),
+		password: z
 			.string()
-			.min(1, { message: 'Correo electrónico es requerido.' })
-			.email({ message: 'El correo electrónico no es válido.' }),
-		password: z.string().min(1, { message: 'La contraseña es requerida.' }),
+			.min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
 	})
 )
 
 const onFormSubmit = ({ valid }) => {
 	if (valid) {
-		login()
+		submitProfile()
 	}
 }
 
-async function login() {
+async function submitProfile() {
 	try {
 		loading.value = true
-		await loginWithPassw({
-			email: email.value,
+		await updateProfile({
+			fullName: fullName.value,
 			password: password.value,
 		})
 	} catch (error) {
-		errorMessage.value = error.message || 'Error al iniciar sesión.'
+		errorMessage.value = error.message || 'Error al actualizar el perfil.'
 	} finally {
 		loading.value = false
 	}

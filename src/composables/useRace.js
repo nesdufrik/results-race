@@ -314,6 +314,8 @@ export const useRace = () => {
 					birth_date: newParticipant.birth_date,
 					gender: newParticipant.gender,
 					team: newParticipant.team,
+					paid: true,
+					terms: true,
 				})
 				.select()
 			if (error) throw error

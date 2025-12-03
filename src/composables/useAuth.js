@@ -29,8 +29,20 @@ export function useAuth() {
 		router.push('/admin/dashboard')
 	}
 
+	const updateProfile = async ({ password, fullName }) => {
+		const { data, error } = await supabase.auth.updateUser({
+			password,
+			data: { full_name: fullName },
+		})
+		if (error) throw new Error('Error al actualizar el perfil')
+
+		setUser(data.user)
+		router.push('/dashboard')
+	}
+
 	return {
 		getSession,
 		loginWithPassw,
+		updateProfile,
 	}
 }
