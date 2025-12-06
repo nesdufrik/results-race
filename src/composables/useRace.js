@@ -9,6 +9,7 @@ export const useRace = () => {
 	const {
 		events,
 		participants,
+		participantsListComplete,
 		event,
 		categorie,
 		categories,
@@ -35,6 +36,7 @@ export const useRace = () => {
 		deleteParticipant: false,
 		assignParticipantNumber: false,
 		verifyPayment: false,
+		loadParticipantsListComplete: false,
 	})
 
 	const loadEvents = async () => {
@@ -299,6 +301,22 @@ export const useRace = () => {
 		}
 	}
 
+	const loadParticipantsListComplete = async (eventId) => {
+		try {
+			loading.loadParticipantsListComplete = true
+			const { data, error } = await supabase
+				.from('participants_list')
+				.select(`*`)
+				.eq('event_id', eventId)
+			if (error) throw error
+			raceStore.setParticipantsListComplete(data)
+		} catch (error) {
+			console.error(error)
+		} finally {
+			loading.loadParticipantsListComplete = false
+		}
+	}
+
 	const registerNewParticipant = async (newParticipant) => {
 		try {
 			loading.registerNewParticipant = true
@@ -422,6 +440,7 @@ export const useRace = () => {
 		startGroups,
 		participant,
 		participants,
+		participantsListComplete,
 		loading,
 		loadEvents,
 		loadEvent,
@@ -441,5 +460,6 @@ export const useRace = () => {
 		deleteParticipant,
 		assignParticipantNumber,
 		verifyPayment,
+		loadParticipantsListComplete,
 	}
 }

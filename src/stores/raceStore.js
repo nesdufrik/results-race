@@ -9,6 +9,7 @@ export const useRaceStore = defineStore('race', {
 		categories: [],
 		participants: [],
 		participant: {},
+		participantsListComplete: [],
 	}),
 	actions: {
 		setEvents(events) {
@@ -38,6 +39,9 @@ export const useRaceStore = defineStore('race', {
 		},
 		setCategories(categories) {
 			this.categories = categories
+		},
+		setParticipantsListComplete(participantsListComplete) {
+			this.participantsListComplete = participantsListComplete
 		},
 	},
 })

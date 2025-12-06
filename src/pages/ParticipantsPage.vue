@@ -18,6 +18,9 @@ const ParticipantNumberModal = defineAsyncComponent(() =>
 const ParticipantVerifyPaymentModal = defineAsyncComponent(() =>
 	import('@/components/Participants/ParticipantVerifyPaymentModal.vue')
 )
+const ParticipantModalListComplete = defineAsyncComponent(() =>
+	import('@/components/Participants/ParticipantModalListComplete.vue')
+)
 
 const route = useRoute()
 const eventId = ref(route.params.idEvent)
@@ -105,7 +108,7 @@ const onDeleteParticipant = (participantId) => {
 				})
 				.catch((error) => console.error(error))
 		},
-		reject: () => {},
+		reject: () => { },
 	})
 }
 
@@ -147,6 +150,20 @@ const onVerifyPayment = (participantId) => {
 	})
 }
 
+const onOpenModalListComplete = () => {
+	const dialogRef = dialog.open(ParticipantModalListComplete, {
+		props: {
+			header: 'Listado Completo',
+			style: { width: '50vw' },
+			breakpoints: { '1199px': '75vw', '575px': '90vw' },
+			modal: true,
+		},
+		data: {
+			eventId: eventId.value,
+		},
+	})
+}
+
 const tagStatus = [
 	{
 		label: 'Pendiente',
@@ -176,47 +193,30 @@ const getStatusTag = (status) => {
 	<div>
 		<div class="flex items-center justify-between">
 			<h1 class="text-2xl font-bold text-primary">Gestionar Participantes</h1>
-			<Button
-				severity="secondary"
-				icon="pi pi-plus"
-				label="Agregar participante"
-				@click="onCreateParticipant"
-				size="small"
-			/>
+			<Button severity="secondary" icon="pi pi-plus" label="Agregar participante" @click="onCreateParticipant"
+				size="small" />
 		</div>
 		<div class="flex flex-col gap-4 mt-9">
 			<Card class="border border-primary">
 				<template #title>
-					<div
-						class="flex flex-col px-4 md:items-center md:flex-row md:justify-between gap-4 md:gap-0"
-					>
+					<div class="flex flex-col px-4 md:items-center md:flex-row md:justify-between gap-4 md:gap-0">
 						<div class="flex flex-row gap-3 md:flex-col md:gap-0">
 							<span class="text-lg font-semibold text-primary">
 								{{ event.name }}
 							</span>
-							<Tag
-								:severity="getStatusTag(event.status).severity"
-								:icon="getStatusTag(event.status).icon"
-								:value="getStatusTag(event.status).label"
-								rounded
-							></Tag>
+							<Tag :severity="getStatusTag(event.status).severity" :icon="getStatusTag(event.status).icon"
+								:value="getStatusTag(event.status).label" rounded></Tag>
 						</div>
-						<RouterLink
-							:to="`/arrivals/${eventId}`"
-							class="font-semibold text-base p-4 md:p-2 md:w-80 flex flex-row items-center justify-center gap-2 text-primary mt-3 hover:text-primary-300 hover:bg-primary-900/90 rounded-md border border-primary-300/50"
-						>
+						<RouterLink :to="`/arrivals/${eventId}`"
+							class="font-semibold text-base p-4 md:p-2 md:w-80 flex flex-row items-center justify-center gap-2 text-primary mt-3 hover:text-primary-300 hover:bg-primary-900/90 rounded-md border border-primary-300/50">
 							<i class="pi pi-clock"></i><span>Registrar Llegadas</span>
 						</RouterLink>
 					</div>
 				</template>
 				<template #content>
 					<div class="mt-6 flex flex-col gap-5">
-						<DataTable
-							:value="participants"
-							class="text-sm"
-							v-model:filters="filters"
-							:globalFilterFields="['full_name']"
-						>
+						<DataTable :value="participants" ref="dt" class="text-sm" v-model:filters="filters"
+							:globalFilterFields="['full_name']">
 							<template #empty>
 								<div class="text-sm text-center italic p-4">
 									<span>
@@ -225,24 +225,22 @@ const getStatusTag = (status) => {
 								</div>
 							</template>
 							<template #header>
-								<div>
+								<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 									<IconField>
 										<InputIcon>
 											<i class="pi pi-search" />
 										</InputIcon>
-										<InputText
-											v-model="filters['global'].value"
-											placeholder="Buscar por nombre..."
-										/>
+										<InputText v-model="filters['global'].value"
+											placeholder="Buscar por nombre..." />
 									</IconField>
+									<div class="md:text-end pb-4">
+										<Button icon="pi pi-list" label="Listado Completo" size="small"
+											severity="secondary" @click="onOpenModalListComplete" />
+									</div>
 								</div>
 							</template>
 							<Column field="race_number" header="#"></Column>
-							<Column
-								field="full_name"
-								header="Nombre"
-								style="min-width: 16rem"
-							></Column>
+							<Column field="full_name" header="Nombre" style="min-width: 16rem"></Column>
 							<Column field="team" header="Club"></Column>
 							<Column>
 								<template #header>
@@ -260,38 +258,16 @@ const getStatusTag = (status) => {
 							<Column header="&nbsp;" style="min-width: 12rem">
 								<template #body="{ data }">
 									<div class="flex flex-col gap-2">
-										<Button
-											v-if="!data.paid"
-											label="Verificar Pago"
-											icon="pi pi-money-bill"
-											size="small"
-											severity="primary"
-											@click="onVerifyPayment(data.id)"
-										/>
-										<Button
-											v-else
-											v-if="!data.race_number"
-											label="Asignar Número"
-											icon="pi pi-calendar"
-											size="small"
-											severity="info"
-											@click="onAssignParticipantNumber(data.id)"
-										/>
+										<Button v-if="!data.paid" label="Verificar Pago" icon="pi pi-money-bill"
+											size="small" severity="primary" @click="onVerifyPayment(data.id)" />
+										<Button v-else v-if="!data.race_number" label="Asignar Número"
+											icon="pi pi-calendar" size="small" severity="info"
+											@click="onAssignParticipantNumber(data.id)" />
 										<ButtonGroup>
-											<Button
-												label="Editar"
-												icon="pi pi-pencil"
-												size="small"
-												severity="secondary"
-												@click="onEditParticipant(data.id)"
-												class="w-full"
-											/>
-											<Button
-												icon="pi pi-trash"
-												size="small"
-												severity="danger"
-												@click="onDeleteParticipant(data.id)"
-											/>
+											<Button label="Editar" icon="pi pi-pencil" size="small" severity="secondary"
+												@click="onEditParticipant(data.id)" class="w-full" />
+											<Button icon="pi pi-trash" size="small" severity="danger"
+												@click="onDeleteParticipant(data.id)" />
 										</ButtonGroup>
 									</div>
 								</template>
